@@ -9,8 +9,9 @@
 #include <netdb.h>
 #include <fcntl.h> // For open()
 
-#define IP "192.168.1.68" //Ubicacion del servidor
-#define PUERTO 9003
+//#define IP "192.168.1.68" //Ubicacion del servidor
+#define IP "172.20.10.2"
+#define PUERTO 9007
 
 void UbicacionDelCliente(struct sockaddr_in);
 void RecibeEnviaComandos(int);
@@ -31,6 +32,7 @@ main(int argc, char *argv[])
 
   printf("bind %d\n", bind(idsocks,(struct sockaddr *) &s_sock,lensock));
   printf("listen %d\n",listen(idsocks,5));
+
   while(1)
     {
       printf("esperando conexion\n");    
@@ -45,29 +47,30 @@ main(int argc, char *argv[])
            RecibeEnviaComandos(idsockc);
            
            close(idsockc);
+
          }
       else 
          {
             printf("conexion rechazada %d \n",idsockc);
          }
     }
+
+    close(idsockc);
 }
 
 void RecibeEnviaComandos(int idsockc)
 {
-    char buf[1024]; // Buffer to receive file content
+    char buf[1024];
     int nb;
 
-    // Receive the file content from the client
     nb = read(idsockc, buf, sizeof(buf) - 1);
     if (nb <= 0) {
         perror("Error al recibir el archivo del cliente");
         return;
     }
 
-    buf[nb] = '\0'; // Null-terminate the received content
+    buf[nb] = '\0'; 
 
-    // Save the received content to a file named "codigo.c"
     int file_descriptor = open("codigo.c", O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (file_descriptor < 0) {
         perror("Error al crear el archivo codigo.c");
@@ -82,15 +85,13 @@ void RecibeEnviaComandos(int idsockc)
 
     close(file_descriptor);
 
-    // Compile the received file
     if (system("gcc codigo.c -o codigo.out") != 0) {
         char *error_message = "Error al compilar el archivo\n";
         send(idsockc, error_message, strlen(error_message), 0);
-        close(idsockc); // Ensure the socket is properly closed
+        close(idsockc); 
         return;
     }
 
-    // Execute the compiled file and capture its output
     FILE *output = popen("./codigo.out", "r");
     if (!output) {
         char *error_message = "Error al ejecutar el archivo\n";
@@ -101,7 +102,6 @@ void RecibeEnviaComandos(int idsockc)
     char output_buffer[1024];
     size_t output_size;
 
-    // Read the output and send it back to the client
     while ((output_size = fread(output_buffer, 1, sizeof(output_buffer) - 1, output)) > 0) {
         output_buffer[output_size] = '\0';
         send(idsockc, output_buffer, output_size, 0);

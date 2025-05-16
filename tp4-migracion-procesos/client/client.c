@@ -9,8 +9,9 @@
 
 #include <netinet/in.h>
 
-#define IP "192.168.1.68" //Ubicacion del servidor
-#define PORT 9003
+//#define IP "192.168.1.68" //Ubicacion del servidor
+#define IP "172.20.10.2"
+#define PORT 9007
 
 int main() 
 {

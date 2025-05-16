@@ -6,7 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#define IP "192.168.1.42"
+//#define IP "192.168.1.42"
+#define IP "172.20.10.3"
 #define PUERTO 80
 int main (int argc, char *argv[])
 {

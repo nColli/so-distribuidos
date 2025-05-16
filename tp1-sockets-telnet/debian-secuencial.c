@@ -7,7 +7,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <netdb.h>
-#define IP "192.168.1.68" //Ubicacion del servidor mini telnet
+//#define IP "192.168.1.68" //Ubicacion del servidor mini telnet
+#define IP "172.20.10.2"
 #define PUERTO 6666
 void UbicacionDelCliente(struct sockaddr_in);
 void RecibeEnviaComandos(int);
