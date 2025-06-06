@@ -36,10 +36,24 @@ void handle_client(int client_sock) {
         // Check for duplicate file name
         for (int i = 0; i < fileCount; i++) {
             if (strcmp(fileTable[i].fileName, fname) == 0) {
-                printf("[DNS] Duplicate file registration attempt: %s\n", fname);
-                send(client_sock, "DUPLICATE\n", 10, 0);
-                close(client_sock);
-                return;
+                // Allow re-registration if same server and file is unlocked
+                if (fileTable[i].lock == 0 && strcmp(fileTable[i].ip, ip) == 0 && fileTable[i].port == port) {
+                    printf("[DNS] Re-registering file: %s at %s:%d (was already present and unlocked)\n", fname, ip, port);
+                    // Optionally update the entry (redundant, but for completeness)
+                    strcpy(fileTable[i].fileName, fname);
+                    strcpy(fileTable[i].ip, ip);
+                    fileTable[i].port = port;
+                    fileTable[i].lock = 0;
+                    send(client_sock, "OK\n", 3, 0);
+                    print_file_table();
+                    close(client_sock);
+                    return;
+                } else {
+                    printf("[DNS] Duplicate file registration attempt: %s\n", fname);
+                    send(client_sock, "DUPLICATE\n", 10, 0);
+                    close(client_sock);
+                    return;
+                }
             }
         }
         strcpy(fileTable[fileCount].fileName, fname);
