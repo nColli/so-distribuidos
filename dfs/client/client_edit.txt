@@ -1,0 +1,3 @@
+1,aaa,33
+2,bbb,55
+data del cliente
