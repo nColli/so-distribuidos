@@ -65,15 +65,7 @@ void request_file(const char* fname, const char* cmd) {
             }
             fclose(f2);
             close(fsock2);
-
-            // Unlock file
-            int dsock = socket(AF_INET, SOCK_STREAM, 0);
-            connect(dsock, (struct sockaddr*)&dns_addr, sizeof(dns_addr));
-            snprintf(buf, BUF_SIZE, "UNLOCK_FILE %s", fname);
-            send(dsock, buf, strlen(buf), 0);
-            recv(dsock, buf, BUF_SIZE, 0);
-            close(dsock);
-            printf("File sent back and unlocked.\n");
+            printf("File sent back.\n");
         }
         close(fsock);
     } else {

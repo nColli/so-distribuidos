@@ -49,6 +49,22 @@ void register_all_txt_files(const char* ip, int port) {
     closedir(d);
 }
 
+void unlock_file_in_dns(const char* fname) {
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in dns_addr = {0};
+    dns_addr.sin_family = AF_INET;
+    dns_addr.sin_port = htons(DNS_PORT);
+    inet_pton(AF_INET, "127.0.0.1", &dns_addr.sin_addr);
+    connect(sock, (struct sockaddr*)&dns_addr, sizeof(dns_addr));
+    char buf[BUF_SIZE];
+    snprintf(buf, BUF_SIZE, "UNLOCK_FILE %s", fname);
+    send(sock, buf, strlen(buf), 0);
+    int n = recv(sock, buf, BUF_SIZE, 0);
+    buf[n] = '\0';
+    printf("[SERVER] Sent unlock for %s to DNS, got reply: %s\n", fname, buf);
+    close(sock);
+}
+
 void handle_client(int client_sock) {
     char buf[BUF_SIZE];
     int n = recv(client_sock, buf, BUF_SIZE, 0);
@@ -95,6 +111,7 @@ void handle_client(int client_sock) {
                 fwrite(buf, 1, n, f);
             }
             fclose(f);
+            unlock_file_in_dns(fname);
         } else {
             printf("[SERVER] File not registered for update: %s\n", fname);
         }
