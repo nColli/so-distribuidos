@@ -1,0 +1,15 @@
+Cliente envia:
+0 = leer
+1 = escribir
+
+forma de envio
+comando nro_pagina
+
+ejemplo
+0 10 === "leer pagina 10"
+
+Solicitar escribir:
+Cuando una pagina esta bloqueda, esta le avisa al cliente enviando un 1 como primer char y 
+se mantiene en un loop hasta que le envia un 2 indicando desbloqueo
+Cuando una pagina esta desbloqueada, le avisa al cliente envianndo un 0 como primer char
+ seguido por el contenido
