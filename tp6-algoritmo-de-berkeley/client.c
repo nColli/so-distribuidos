@@ -110,7 +110,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Main loop - keep the client alive
     printf("\nCliente corriendo..\n");
     printf("Se sincronizara el tiempo con el demonio\n");
     printf("Ctrl+C para salir.\n\n");
@@ -156,9 +155,6 @@ void corregir_tiempo(long long nuevoTiempo) {
     new_tv.tv_sec = nuevoTiempo;
     new_tv.tv_usec = current_tv.tv_usec;
     
-    //printf("Tiempo actual del sistema: %ld seg\n", current_tv.tv_sec);
-    //printf("Nuevo tiempo: %ld seg \n", new_tv.tv_sec);
-    
     if (settimeofday(&new_tv, NULL) != 0) {
         //si es != 0 => hay error de alg tipo
         if (errno == EPERM) {
@@ -169,8 +165,6 @@ void corregir_tiempo(long long nuevoTiempo) {
         pthread_mutex_unlock(&client_state.sync_mutex);
         return;
     }
-
-    //printf("Tiempo del sistema modificado: %lld seg\n", getTimeSec());
     
     pthread_mutex_unlock(&client_state.sync_mutex);
 }
@@ -239,7 +233,7 @@ void* handler_mensajes(void* arg) {
 // mostrar tiempo cada cierto tiempo
 void* time_display(void* arg) {
     while (client_state.running) {
-        sleep(3); // Update every 3 seconds
+        sleep(3);
         
         long long current_time = getTimeSec();
         

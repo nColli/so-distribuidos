@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
             continue;
         }
         
-        // guardo iunfo del cliente - para eso necesito bloquear acceso con mutex clientes
+        // guardo info del cliente - para eso necesito bloquear acceso con mutex clientes
         server_state.clients[client_index].socket = client_socket;
         server_state.clients[client_index].address = client_addr;
         server_state.clients[client_index].active = 1;
@@ -212,9 +212,6 @@ void modificar_tiempo_servidor(long long nuevoTiempo) {
     struct timeval new_tv;
     new_tv.tv_sec = nuevoTiempo;
     new_tv.tv_usec = current_tv.tv_usec;
-    
-    //printf("Tiempo actual del servidor: %ld seg\n", current_tv.tv_sec);
-    //printf("Aplicando a servidor nuevo timepo: %lld seg\n", new_tv.tv_sec);
 
     if (settimeofday(&new_tv, NULL) != 0) {
         if (errno == EPERM) {
@@ -227,9 +224,6 @@ void modificar_tiempo_servidor(long long nuevoTiempo) {
     }
     
     printf("Tiempo del servidor modificado\n");
-
-    //long long new_system_time = getTimeSec();
-    //printf("Verificacion nuevo tiempo: %lld seg\n", new_system_time);
 
     long long current_time = getTimeSec();
     time_t current_sec = (time_t)current_time;
@@ -266,8 +260,7 @@ long long request_client_time(int client_socket) {
     if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
         perror("Timeout conexion con cliente");
     }
-    
-    // Send time request
+
     if (send(client_socket, TIME_REQUEST, strlen(TIME_REQUEST), 0) < 0) {
         perror("Error al enviar peticion");
         return -1;
@@ -296,14 +289,6 @@ long long request_client_time(int client_socket) {
 void* synchronize_time(void* arg) {
     while (server_state.running) {
         printf("Esperar %d segundos\n", server_state.sync_interval);
-        
-        /*unsigned int remaining = server_state.sync_interval;
-        while (remaining > 0 && server_state.running) {
-            remaining = sleep(remaining);
-            if (remaining > 0) {
-                printf("Sleep interrumpido, continuando por %u segundos mas\n", remaining);
-            }
-        }*/
 
        sleep(server_state.sync_interval);
         
@@ -345,12 +330,6 @@ void* synchronize_time(void* arg) {
                 printf("Cliente %d no activo, saltea\n", i);
             }
         }
-        /*
-        if (valid_times < 2) {
-            printf("Not enough active clients for synchronization\n");
-            pthread_mutex_unlock(&server_state.clients_mutex);
-            continue;
-        }*/
         
         // calcular tiempo promedio
         long long total_time = 0;
@@ -364,7 +343,6 @@ void* synchronize_time(void* arg) {
         printf("Tiempo promedio calculado: %02d/%02d/%04d %02d:%02d:%02d (%lld)\n", 
                avg_tm->tm_mday, avg_tm->tm_mon + 1, avg_tm->tm_year + 1900,
                avg_tm->tm_hour, avg_tm->tm_min, avg_tm->tm_sec, average_time);
-        //printf("Numero de nodos (serv + clientes) en calculo: %d\n", valid_times);
         
         //enviar tiempo calculado y fijarlo
         int client_index = 0;
