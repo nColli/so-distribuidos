@@ -6,7 +6,6 @@
 #include <netinet/in.h>
 
 int main (int argc, char *argv[]) {
-    struct sockaddr_in socket_server, client_socket;
     int id_socket_server, id_socket_client, len_socket;
 
     if (argc < 2) {
@@ -23,6 +22,7 @@ int main (int argc, char *argv[]) {
         exit(1);
     }
 
+    struct sockaddr_in socket_server;
     socket_server.sin_family = AF_INET;
     socket_server.sin_port = htons(port);
     socket_server.sin_addr.s_addr = INADDR_ANY; //bind the server socket to all available nw interfaces
@@ -41,9 +41,12 @@ int main (int argc, char *argv[]) {
         exit(1);
     }
 
+    struct sockaddr_in socket_client;
+
     while (1) {
         printf("Esperando conexion\n");
-        id_socket_client = accept(id_socket_server, (struct sockaddr *)&client_socket, &len_socket);
+        
+        id_socket_client = accept(id_socket_server, (struct sockaddr *)&socket_client, &len_socket);
         if (id_socket_client < 0) {
             perror("Error aceptar conexion\n");
             continue;
@@ -52,13 +55,13 @@ int main (int argc, char *argv[]) {
         char buffer[30];
         int nbytes;
         printf("Conexion aceptada\n");
+
         nbytes = read(id_socket_client, buffer, sizeof(buffer));
         buffer[nbytes] = '\0';
 
         printf("Recibido del cliente %d: %s\n", id_socket_client, buffer);
         write(id_socket_client, "recibido\n", 10);
+
         close(id_socket_client);
     }
-
-    exit(0);
 }
