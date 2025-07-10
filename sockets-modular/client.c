@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#define MAX_MSG 1024
+
+#include "protocol.h"
 
 typedef struct client_state {
     int fd_socket;
@@ -85,31 +86,14 @@ void connect_to_server() {
 
 void chat() {
     long int nb;
-
     char buffer[MAX_MSG];
-    readMessage(buffer);
 
-    while (buffer[0] != '\0') {
-        nb = write(client.fd_socket, buffer, strlen(buffer));
+    nb = readSendMessage(client.fd_socket, buffer);
 
-        printf("%ld bytes enviados al servidor\n", nb);
-
-        nb = read(client.fd_socket, buffer, MAX_MSG);
-        buffer[nb] = '\0';
-
+    while(nb > 0) {
+        recvMessage(client.fd_socket, buffer);
         printf("Servidor: %s", buffer);
-        readMessage(buffer);
+        nb = readSendMessage(client.fd_socket, buffer);
     }
-}
 
-void readMessage(char *buffer) {
-    printf("Mensaje: ");
-    if (fgets(buffer, MAX_MSG, stdin) != NULL) {
-        size_t len = strlen(buffer);
-        if (len > 0 && buffer[len - 1] == '\n') {
-            buffer[len - 1] = '\0';
-        }
-    } else {
-        buffer[0] = '\0';  // Clear buffer on error
-    }
 }

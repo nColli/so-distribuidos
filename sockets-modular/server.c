@@ -5,7 +5,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define MAX_MSG 1024
+
+#include "protocol.h"
+
 #define MAX_LISTEN 5
 
 typedef struct server_state {
@@ -17,10 +19,9 @@ typedef struct server_state {
 server_state server = {0}; //global para fn e hilos
 
 void start_server();
+void handle_connections();
 
 int main (int argc, char *argv[]) {
-    int id_socket_client;
-
     if (argc < 2) {
         printf("Use: %s <port>\n", argv[0]);
         exit(1);
@@ -30,36 +31,7 @@ int main (int argc, char *argv[]) {
 
     start_server();
 
-    struct sockaddr_in socket_client;
-
-    while (1) {
-        printf("Esperando nueva conexion\n");
-        socklen_t client_len = sizeof(struct sockaddr_in);
-        id_socket_client = accept(server.fd_socket, (struct sockaddr *)&socket_client, &client_len);
-        if (id_socket_client < 0) {
-            perror("Error aceptar conexion\n");
-            continue;
-        }
-
-        char buffer[30];
-        int nbytes;
-        printf("Conexion aceptada\n");
-        printf("Client IP: %s\n", inet_ntoa(socket_client.sin_addr));
-        printf("Client port: %d\n", ntohs(socket_client.sin_port));
-
-        nbytes = read(id_socket_client, buffer, sizeof(buffer));
-        buffer[nbytes] = '\0';
-
-        while (nbytes > 0) {
-            printf("Recibido del cliente %d: %s\n", id_socket_client, buffer);
-            write(id_socket_client, "recibido\n", 10);
-            nbytes = read(id_socket_client, buffer, sizeof(buffer));
-            buffer[nbytes] = '\0';
-        }
-
-        printf("Cerrando conexion con cliente %d\n", id_socket_client);
-        close(id_socket_client);
-    }
+    handle_connections();
 }
 
 void start_server() {
@@ -88,5 +60,39 @@ void start_server() {
         close(server.fd_socket);
         exit(1);
     }
+}
+
+void handle_connections() {
+    int fd_socket_client;
+    struct sockaddr_in client_addr = {0};
+    char buffer[MAX_MSG];
+    long int nb;
+    socklen_t client_len = sizeof(client_addr);
+
+    while (1) {
+        fd_socket_client = accept(server.fd_socket, (struct sockaddr *)&client_addr, &client_len);
+
+        if (fd_socket_client == -1) {
+            perror("Error accept connection");
+            continue;
+        }
+
+        printf("Conexion aceptada\n");
+        printf("Client IP: %s\n", inet_ntoa(client_addr.sin_addr));
+        printf("Client port: %d\n", ntohs(client_addr.sin_port));
+
+        
+
+        nb = recvMessage(fd_socket_client, buffer);
+
+        while (nb > 0) { //hasta que cliente no envie \0 se reciben mensajes
+            sendMessage(fd_socket_client, "Recibido\n");
+
+            nb = recvMessage(fd_socket_client, buffer);
+        }
+
+        printf("Cerrando conexion con cliente %d\n", fd_socket_client);
+    }
+
 }
 
